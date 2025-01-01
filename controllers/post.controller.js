@@ -15,6 +15,7 @@ function save(req, res)
         title: {
             type: "string",
             optional: false,
+            min: "5",
             max: "100"
         },
         content: {
@@ -117,6 +118,7 @@ function update(req, res)
         title: {
             type: "string",
             optional: false,
+            min: "5",
             max: "100"
         },
         content: {
