@@ -75,7 +75,7 @@ function login(req, res)
                 
                 jwt.sign({
                     email: user.email,
-                    userId: user.userId
+                    userId: user.id
                 }, process.env.JWT_KEY, (error, token) => {
 
                     if(error)
