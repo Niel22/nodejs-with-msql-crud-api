@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const apiResponse = require('../utils/apiResponse');
 
 function checkAuth(req, res, next) {
   try {
@@ -6,6 +7,11 @@ function checkAuth(req, res, next) {
     const decodedToken = jwt.verify(token, process.env.JWT_KEY);
 
     req.userData = decodedToken;
+
+    if(!req.userData.userId)
+    {
+      return apiResponse.error(res, "User not logged in");
+    }
 
     next();
     

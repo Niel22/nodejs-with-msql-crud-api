@@ -1,5 +1,6 @@
 const Validator = require("fastest-validator");
 const models = require("../models");
+const deleteImage = require("../helpers/deleteImage");
 const {
   success,
   error,
@@ -8,49 +9,49 @@ const {
 } = require("../utils/apiResponse");
 
 const schema = {
-  name: {
+  title: {
     type: "string",
     optional: false,
-    min: "3",
+    min: "5",
   },
-  email: {
-    type: "email",
+  content: {
+    type: "string",
+    min: 25,
     optional: false,
   },
-  password: {
+  categoryId: {
     type: "string",
-    min: "8",
     optional: false,
   },
 };
 
 const v = new Validator();
 
-async function validateUserRequest(req, res, next) {
+async function validateInput(req, res, next) {
   try {
-    const userData = {
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
+    const data = {
+      title: req.body.title,
+      content: req.body.content,
+      categoryId: req.body.categoryId,
     };
 
-    const validated = v.validate(userData, schema);
+    const validated = v.validate(data, schema);
 
     if (validated !== true) {
       return validationError(res, validated);
     }
 
-    const existingUser = await models.User.findOne({
+    const category = await models.Category.findOne({
       where: {
-        email: userData.email,
+        id: data.categoryId,
       },
     });
 
-    if (existingUser) {
-      return error(res, "User with this email already exist")
+    if (category === null) {
+      return error(res, "Category deos not exist");
     }
 
-    req.userData = userData;
+    req.postData = data;
     next();
   } catch (error) {
     return exceptionError(res, error);
@@ -58,5 +59,5 @@ async function validateUserRequest(req, res, next) {
 }
 
 module.exports = {
-  validateUserRequest: validateUserRequest,
+  validateInput: validateInput,
 };

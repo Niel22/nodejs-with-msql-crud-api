@@ -14,12 +14,8 @@ const {
 
 async function signUp(req, res) {
   try {
-    const userData = await createUserRequest.validateUserRequest(req);
-
-    if (userData.error) {
-      return validationError(res, userData.error);
-    }
-
+  
+    const userData = req.userData;
     const isUserCreated = await createUser.createUser(userData);
 
     if (isUserCreated) {
@@ -27,19 +23,16 @@ async function signUp(req, res) {
     }
 
     return error("User cannot be created");
+
   } catch (error) {
-    return exceptionError(res, error);
+    return exceptionError(res, error.message);
   }
 }
 
 async function login(req, res) {
   try {
-    const userData = await userLoginRequest.validateInput(req);
-
-    if (userData.error) {
-      return validationError(res, userData.error);
-    }
-
+    const userData = req.userData;
+    
     const token = await loginUser.loginUser(userData);
 
     if (token) {
@@ -49,7 +42,7 @@ async function login(req, res) {
     return error(res, "Invalid email or password");
 
   } catch (error) {
-    return exceptionError(res, error);
+    return exceptionError(res, error.message);
   }
 }
 

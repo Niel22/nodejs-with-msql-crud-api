@@ -1,4 +1,5 @@
 const Validator = require("fastest-validator");
+const { validationError } = require("../utils/apiResponse");
 
 const schema = {
   email: {
@@ -24,12 +25,12 @@ async function validateInput(req, res, next) {
     const validated = v.validate(data, schema);
 
     if (validated !== true) {
-      return {
-        error: validated
-    };
+      return validationError(res, validated);
     }
 
-    req.postData = data;
+    req.userData = data;
+    next()
+
   } catch (error) {
     return error;
   }
