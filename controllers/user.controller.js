@@ -1,110 +1,59 @@
 const models = require("../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const createUser = require("../actions/user/createUser");
+const createUserRequest = require("../request/createUserRequest");
+const userLoginRequest = require("../request/userLoginRequest");
+const loginUser = require("../actions/user/loginUser");
+const {
+  success,
+  error,
+  validationError,
+  exceptionError,
+} = require("../utils/apiResponse");
 
-function signUp(req, res) {
-  models.User.findOne({
-    where: {
-      email: req.body.email,
-    },
-  })
-    .then((result) => {
-      if (result) {
-        return res.status(409).json({
-          message: "The email is already taken",
-        });
-      }
+async function signUp(req, res) {
+  try {
+    const userData = await createUserRequest.validateUserRequest(req);
 
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(req.body.password, salt, (err, hash) => {
-          const user = {
-            name: req.body.name,
-            email: req.body.email,
-            password: hash,
-          };
+    if (userData.error) {
+      return validationError(res, userData.error);
+    }
 
-          models.User.create(user)
-            .then((result) => {
-              if (result) {
-                return res.status(201).json({
-                  message: "User Registered Successfully",
-                  user: result,
-                });
-              }
+    const isUserCreated = await createUser.createUser(userData);
 
-              return res.status(500).json({
-                message: "User not created",
-              });
-            })
-            .catch((error) => {
-              return res.status(500).json({
-                message: "Something went wrong",
-                error: error,
-              });
-            });
-        });
-      });
-    })
-    .catch((error) => {
-      return res.status(500).json({
-        message: "Something went wrong",
-        error: error,
-      });
-    });
+    if (isUserCreated) {
+      return success(res, "User Created Succesfully");
+    }
+
+    return error("User cannot be created");
+  } catch (error) {
+    return exceptionError(res, error);
+  }
 }
 
-function login(req, res)
-{
-    models.User.findOne({
-        where: {
-            email: req.body.email
-        }
-    }).then(user => {
+async function login(req, res) {
+  try {
+    const userData = await userLoginRequest.validateInput(req);
 
-        if(user === null)
-        {
-            return res.status(401).json({
-                message: "Invalid email or password"
-            });
-        }
+    if (userData.error) {
+      return validationError(res, userData.error);
+    }
 
-        bcrypt.compare(req.body.password, user.password, (error, result) => {
-            
-            if(result)
-            {
-                
-                jwt.sign({
-                    email: user.email,
-                    userId: user.id
-                }, process.env.JWT_KEY, (error, token) => {
+    const token = await loginUser.loginUser(userData);
 
-                    if(error)
-                    {
-                        return res.status(401).json({
-                            message: "Invalid email or password",
-                            error: error
-                        });
-                    }
+    if (token) {
+      return success(res, token, "User Logged in");
+    }
 
-                    return res.status(200).json({
-                        message: "Authenticaton successful",
-                        token: token
-                    });
-                })
-            }
-            
-            return;
-        })
+    return error(res, "Invalid email or password");
 
-    }).catch(errror => {
-        return res.status(500).json({
-            message: "Something went wrong",
-            error: error,
-          });
-    })
+  } catch (error) {
+    return exceptionError(res, error);
+  }
 }
 
 module.exports = {
   signUp: signUp,
-  login: login
+  login: login,
 };
