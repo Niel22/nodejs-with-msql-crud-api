@@ -1,84 +1,31 @@
 const Validator = require('fastest-validator');
+const postRequest = require('../request/createPostRequest');
+const createPost = require('../actions/post/createPost');
 const models = require('../models');
+const {
+    success,
+    error,
+    exceptionError,
+  } = require("../utils/apiResponse");
 
-function save(req, res)
+async function save(req, res)
 {
-    
+    try{
+        
+        req.postData.userId = req.userData.userId;
 
+        const result = await createPost.createPost(req.postData);
 
-    const post = {
-        title: req.body.title,
-        content: req.body.content,
-        imageUrl: req.body.imageUrl,
-        categoryId: req.body.categoryId,
-        userId: req.userData.userId
-    }
-
-    const schema = {
-        title: {
-            type: "string",
-            optional: false,
-            min: "5",
-            max: "100"
-        },
-        content: {
-            type: "string",
-            optional: false,
-            max: "500"
-        },
-        categoryId: {
-            type: "number",
-            optional: false
-        }
-    }
-
-    const v = new Validator();
-    const response = v.validate(post, schema);
-
-    if(response !== true)
-    {
-        return res.status(422).json({
-            message: "Validation fail",
-            errors: response
-        });
-    }
-
-
-    models.Category.findByPk(req.body.categoryId).then(result => {
-        if(result === null)
+        if(result)
         {
-            return res.status(422).json({
-                message: "Category does not exist",
-            });
+            return success(res, "Post Created");
         }
 
-        models.Post.create(post).then(result => {
-            if(result){
-    
-                return res.status(200).json({
-                    message: "Post Created",
-                    post: result
-                })
-            }
-            
-            return res.status(400).json({
-                message: "Problem creating Post"
-            })
-        }).catch(error => {
-            return res.status(500).json({
-                message: "Something went wrong",
-                error: error
-            })
-        });
+        return error('Cannot create post');
 
-    }).catch(error => {
-        return res.status(500).json({
-            message: "Something went wrong",
-            error: error
-        })
-    })
-
-    
+    }catch(error){
+        return exceptionError(res, error);
+    }
 }
 
 function show(req, res)

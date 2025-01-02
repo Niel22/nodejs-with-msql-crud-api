@@ -1,6 +1,6 @@
-const success = (res, data, message) => {
+const success = (res,message, data = {}) => {
     res.status(200).json({
-        data: data ?? {},
+        data: data,
         message: message,
     })
 }

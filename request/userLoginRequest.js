@@ -14,7 +14,7 @@ const schema = {
 
 const v = new Validator();
 
-async function validateInput(req) {
+async function validateInput(req, res, next) {
   try {
     const data = {
       email: req.body.email,
@@ -24,10 +24,12 @@ async function validateInput(req) {
     const validated = v.validate(data, schema);
 
     if (validated !== true) {
-      return validated;
+      return {
+        error: validated
+    };
     }
 
-    return data;
+    req.postData = data;
   } catch (error) {
     return error;
   }
