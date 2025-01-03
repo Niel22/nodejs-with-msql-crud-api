@@ -5,6 +5,7 @@ const FetchAllPost = require('../actions/post/FetchAllPost');
 const FetchSinglePost = require('../actions/post/FetchSinglePost');
 const updatePost = require('../actions/post/updatePost');
 const deletePost = require('../actions/post/deletePost');
+const {transform, transformCollection} = require('../resource/postResource');
 const models = require('../models');
 const {
     success,
@@ -43,7 +44,7 @@ async function show(req, res)
 
         if(post)
         {
-            return success(res, post);
+            return success(res, transform(post));
         }
 
         return error(res, "Post not found");
@@ -63,7 +64,7 @@ async function index(req, res)
 
         if(posts)
         {
-            return success(res, posts);
+            return success(res, transformCollection(posts));
         }
 
         return error(res, 'No Post Found');
